@@ -27,26 +27,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private CustomUserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
+protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain)
+        throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+    final String authHeader = request.getHeader("Authorization");
 
-        String email = null;
-        String token = null;
+    String email = null;
+    String token = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            email = jwtUtil.extractEmail(token);
-        }
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+        email = jwtUtil.extractEmail(token);
+    }
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+    if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(email);
+        UserDetails userDetails =
+                userDetailsService.loadUserByUsername(email);
+
+        // 🔥 IMPORTANT VALIDATION
+        if (jwtUtil.validateToken(token, userDetails)) {
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
@@ -56,12 +59,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
 
             authToken.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
+                    new WebAuthenticationDetailsSource()
+                            .buildDetails(request)
             );
 
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-        }
+            SecurityContextHolder.getContext()
+                    .setAuthentication(authToken);
+                    System.out.println("Token: " + token);
+System.out.println("Extracted Email: " + email);
 
-        filterChain.doFilter(request, response);
+        }
     }
+
+    filterChain.doFilter(request, response);
+}
+
 }
