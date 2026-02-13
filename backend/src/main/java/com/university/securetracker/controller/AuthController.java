@@ -1,17 +1,13 @@
 package com.university.securetracker.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.university.securetracker.dto.AuthRequest;
-import com.university.securetracker.dto.AuthResponse;
-import com.university.securetracker.model.Role;
+import com.university.securetracker.dto.LoginRequest;
+import com.university.securetracker.dto.RegisterRequest;
 import com.university.securetracker.model.User;
 import com.university.securetracker.repository.UserRepository;
 import com.university.securetracker.security.JwtUtil;
@@ -20,45 +16,39 @@ import com.university.securetracker.security.JwtUtil;
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final UserRepository repo;
+    private final PasswordEncoder encoder;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private UserRepository userRepository;
+    // ✅ constructor injection
+    public AuthController(UserRepository repo, PasswordEncoder encoder) {
+        this.repo = repo;
+        this.encoder = encoder;
+        this.jwtUtil = new JwtUtil();
+    }
+    @PostMapping("/register")
+    public String register(@RequestBody RegisterRequest req) {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+        User user = new User();
+        user.setEmail(req.getEmail());
+        user.setPassword(encoder.encode(req.getPassword()));
+        user.setRole(req.getRole());
+        user.setStatus("ACTIVE");
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+        repo.save(user);
 
-    // Register Admin
-    @PostMapping("/register-admin")
-    public String registerAdmin(@RequestBody User user) {
+        return "User created";
+    }
+@PostMapping("/login")
+public String login(@RequestBody LoginRequest req){
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(Role.ADMIN);
+    User user = repo.findByEmail(req.getEmail()).orElseThrow();
 
-        userRepository.save(user);
-
-        return "Admin registered successfully";
+    if(!encoder.matches(req.getPassword(), user.getPassword())){
+        return "Invalid password";
     }
 
-    // Login
-    @PostMapping("/login")
-    public AuthResponse login(@RequestBody AuthRequest request) {
+    return jwtUtil.generateToken(user.getEmail(), user.getRole());
+}
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-
-        User user = userRepository.findByEmail(request.getEmail()).get();
-
-       String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-
-        return new AuthResponse(token);
-    }
 }

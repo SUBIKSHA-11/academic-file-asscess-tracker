@@ -1,9 +1,8 @@
 package com.university.securetracker.controller;
 
+
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,45 +13,49 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.university.securetracker.dto.FacultyRequest;
-import com.university.securetracker.model.User;
+import com.university.securetracker.model.FacultyDetails;
 import com.university.securetracker.service.FacultyService;
 
 @RestController
 @RequestMapping("/admin/faculty")
+//@RequiredArgsConstructor
 public class AdminFacultyController {
 
-    @Autowired
-    private FacultyService facultyService;
+    private final FacultyService service;
 
-    @PreAuthorize("hasRole('ADMIN')")
+    public AdminFacultyController(FacultyService service) {
+        this.service = service;
+    }
+
+    // CREATE
     @PostMapping
-    public String addFaculty(@RequestBody FacultyRequest request) {
-        return facultyService.addFaculty(request);
+    public FacultyDetails create(@RequestBody FacultyRequest req){
+        return service.create(req);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // READ
     @GetMapping
-    public List<User> getAllFaculties() {
-        return facultyService.getAllFaculties();
+    public List<FacultyDetails> all(){
+        return service.getAll();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{id}")
-    public User getFaculty(@PathVariable Long id) {
-        return facultyService.getFacultyById(id);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
+    // UPDATE
     @PutMapping("/{id}")
-    public String updateFaculty(
-            @PathVariable Long id,
-            @RequestBody FacultyRequest request) {
-        return facultyService.updateFaculty(id, request);
+    public FacultyDetails update(@PathVariable Long id,
+                                 @RequestBody FacultyRequest req){
+        return service.update(id, req);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // DELETE
     @DeleteMapping("/{id}")
-    public String deleteFaculty(@PathVariable Long id) {
-        return facultyService.deleteFaculty(id);
+    public String delete(@PathVariable Long id){
+        service.delete(id);
+        return "Deleted";
+    }
+
+    // FILTER
+    @GetMapping("/department/{dept}")
+    public List<FacultyDetails> byDept(@PathVariable String dept){
+        return service.byDept(dept);
     }
 }

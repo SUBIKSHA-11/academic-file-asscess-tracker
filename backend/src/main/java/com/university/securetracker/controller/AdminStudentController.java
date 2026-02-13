@@ -2,8 +2,6 @@ package com.university.securetracker.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,55 +12,55 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.university.securetracker.dto.StudentRequest;
-import com.university.securetracker.model.User;
+import com.university.securetracker.model.StudentDetails;
 import com.university.securetracker.service.StudentService;
 
 @RestController
 @RequestMapping("/admin/students")
+//@RequiredArgsConstructor
 public class AdminStudentController {
 
-    @Autowired
-    private StudentService studentService;
+    private final StudentService service;
 
-    @PreAuthorize("hasRole('ADMIN')")
+    public AdminStudentController(StudentService service) {
+        this.service = service;
+    }
+
+    // CREATE
     @PostMapping
-    public String addStudent(@RequestBody StudentRequest request) {
-        return studentService.addStudent(request);
+    public StudentDetails create(@RequestBody StudentRequest req){
+        return service.create(req);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // READ
     @GetMapping
-    public List<User> getAllStudents() {
-        return studentService.getAllStudents();
+    public List<StudentDetails> all(){
+        return service.getAll();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/year/{year}")
-    public List<User> getByYear(@PathVariable Integer year) {
-        return studentService.getStudentsByYear(year);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/year/{year}/department/{department}")
-    public List<User> getByYearAndDepartment(
-            @PathVariable Integer year,
-            @PathVariable String department) {
-
-        return studentService.getStudentsByYearAndDepartment(year, department);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
+    // UPDATE
     @PutMapping("/{id}")
-    public String updateStudent(
-            @PathVariable Long id,
-            @RequestBody StudentRequest request) {
-
-        return studentService.updateStudent(id, request);
+    public StudentDetails update(@PathVariable Long id,
+                                 @RequestBody StudentRequest req){
+        return service.update(id, req);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // DELETE
     @DeleteMapping("/{id}")
-    public String deleteStudent(@PathVariable Long id) {
-        return studentService.deleteStudent(id);
+    public String delete(@PathVariable Long id){
+        service.delete(id);
+        return "Deleted";
+    }
+
+    // FILTER by dept
+    @GetMapping("/department/{dept}")
+    public List<StudentDetails> byDept(@PathVariable String dept){
+        return service.byDept(dept);
+    }
+
+    // FILTER by year
+    @GetMapping("/year/{year}")
+    public List<StudentDetails> byYear(@PathVariable Integer year){
+        return service.byYear(year);
     }
 }

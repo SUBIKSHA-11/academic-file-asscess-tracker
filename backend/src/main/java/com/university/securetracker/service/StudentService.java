@@ -1,88 +1,88 @@
 package com.university.securetracker.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.university.securetracker.dto.StudentRequest;
-import com.university.securetracker.model.Role;
+import com.university.securetracker.model.StudentDetails;
 import com.university.securetracker.model.User;
+import com.university.securetracker.repository.StudentRepository;
 import com.university.securetracker.repository.UserRepository;
 
 @Service
+//@RequiredArgsConstructor
 public class StudentService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final StudentRepository studentRepo;
+    private final UserRepository userRepo;
+    private final PasswordEncoder encoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    public String addStudent(StudentRequest request) {
-
-        User student = new User();
-
-        student.setName(request.getName());
-        student.setEmail(request.getEmail());
-        student.setPhone(request.getPhone());
-        student.setDepartment(request.getDepartment());
-        student.setYear(request.getYear());
-        student.setPassword(passwordEncoder.encode(request.getPassword()));
-        student.setRole(Role.STUDENT);
-
-        userRepository.save(student);
-
-        return "Student added successfully";
+    public StudentService(PasswordEncoder encoder, StudentRepository studentRepo, UserRepository userRepo) {
+        this.encoder = encoder;
+        this.studentRepo = studentRepo;
+        this.userRepo = userRepo;
     }
 
-    public List<User> getAllStudents() {
-        return userRepository.findAll()
-                .stream()
-                .filter(user -> user.getRole() == Role.STUDENT)
-                .collect(Collectors.toList());
+    // ✅ CREATE
+    public StudentDetails create(StudentRequest req) {
+
+        User user = new User();
+        user.setEmail(req.getEmail());
+        user.setPassword(encoder.encode(req.getPassword()));
+        user.setRole("STUDENT");
+        user.setStatus("ACTIVE");
+
+        userRepo.save(user);
+
+        StudentDetails s = new StudentDetails();
+        s.setUser(user);
+        s.setRegNo(req.getRegNo());
+        s.setName(req.getName());
+        s.setEmail(req.getEmail());
+        s.setPhone(req.getPhone());
+        s.setDepartment(req.getDepartment());
+        s.setYear(req.getYear());
+
+        return studentRepo.save(s);
     }
 
-    public List<User> getStudentsByYear(Integer year) {
-        return getAllStudents()
-                .stream()
-                .filter(student -> year.equals(student.getYear()))
-                .collect(Collectors.toList());
+    // ✅ READ
+    public List<StudentDetails> getAll() {
+        return studentRepo.findAll();
     }
 
-    public List<User> getStudentsByYearAndDepartment(Integer year, String department) {
-        return getAllStudents()
-                .stream()
-                .filter(student ->
-                        year.equals(student.getYear()) &&
-                        department.equalsIgnoreCase(student.getDepartment()))
-                .collect(Collectors.toList());
+    // ✅ UPDATE
+    public StudentDetails update(Long id, StudentRequest req) {
+
+        StudentDetails s = studentRepo.findById(id).orElseThrow();
+
+        s.setRegNo(req.getRegNo());
+        s.setName(req.getName());
+        s.setPhone(req.getPhone());
+        s.setDepartment(req.getDepartment());
+        s.setYear(req.getYear());
+
+        return studentRepo.save(s);
     }
 
-    public String updateStudent(Long id, StudentRequest request) {
+    // ✅ DELETE
+    public void delete(Long id) {
 
-        User student = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        student.setName(request.getName());
-        student.setPhone(request.getPhone());
-        student.setDepartment(request.getDepartment());
-        student.setYear(request.getYear());
-
-        userRepository.save(student);
-
-        return "Student updated successfully";
+        StudentDetails s = studentRepo.findById(id).orElseThrow();
+studentRepo.delete(s);
+        userRepo.delete(s.getUser());
+        
     }
 
-    public String deleteStudent(Long id) {
+    // ✅ FILTER by dept
+    public List<StudentDetails> byDept(String dept) {
+        return studentRepo.findByDepartment(dept);
+    }
 
-        User student = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        userRepository.delete(student);
-
-        return "Student deleted successfully";
+    // ✅ FILTER by year
+    public List<StudentDetails> byYear(Integer year) {
+        return studentRepo.findByYear(year);
     }
 }

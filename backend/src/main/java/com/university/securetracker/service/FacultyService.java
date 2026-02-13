@@ -1,74 +1,83 @@
 package com.university.securetracker.service;
 
+
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.university.securetracker.dto.FacultyRequest;
-import com.university.securetracker.model.Role;
+import com.university.securetracker.model.FacultyDetails;
 import com.university.securetracker.model.User;
+import com.university.securetracker.repository.FacultyRepository;
 import com.university.securetracker.repository.UserRepository;
 
 @Service
+//@RequiredArgsConstructor
 public class FacultyService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final FacultyRepository facultyRepo;
+    private final UserRepository userRepo;
+    private final PasswordEncoder encoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    public String addFaculty(FacultyRequest request) {
-
-        User faculty = new User();
-
-        faculty.setName(request.getName());
-        faculty.setEmail(request.getEmail());
-        faculty.setPhone(request.getPhone());
-        faculty.setDepartment(request.getDepartment());
-        faculty.setFacultyCode(request.getFacultyCode());
-        faculty.setPassword(passwordEncoder.encode(request.getPassword()));
-        faculty.setRole(Role.FACULTY);
-
-        userRepository.save(faculty);
-
-        return "Faculty added successfully";
+    public FacultyService(PasswordEncoder encoder, FacultyRepository facultyRepo, UserRepository userRepo) {
+        this.encoder = encoder;
+        this.facultyRepo = facultyRepo;
+        this.userRepo = userRepo;
     }
 
-    public List<User> getAllFaculties() {
-        return userRepository.findAll()
-                .stream()
-                .filter(user -> user.getRole() == Role.FACULTY)
-                .toList();
+    // ✅ CREATE
+    public FacultyDetails create(FacultyRequest req) {
+
+        User user = new User();
+        user.setEmail(req.getEmail());
+        user.setPassword(encoder.encode(req.getPassword()));
+        user.setRole("FACULTY");
+        user.setStatus("ACTIVE");
+
+        userRepo.save(user);
+
+        FacultyDetails faculty = new FacultyDetails();
+        faculty.setUser(user);
+        faculty.setFacultyCode(req.getFacultyCode());
+        faculty.setName(req.getName());
+        faculty.setEmail(req.getEmail());
+        faculty.setPhone(req.getPhone());
+        faculty.setDepartment(req.getDepartment());
+
+        return facultyRepo.save(faculty);
     }
 
-    public User getFacultyById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Faculty not found"));
+    // ✅ READ
+    public List<FacultyDetails> getAll() {
+        return facultyRepo.findAll();
     }
 
-    public String updateFaculty(Long id, FacultyRequest request) {
+    // ✅ UPDATE
+    public FacultyDetails update(Long id, FacultyRequest req) {
 
-        User faculty = getFacultyById(id);
+        FacultyDetails f = facultyRepo.findById(id).orElseThrow();
 
-        faculty.setName(request.getName());
-        faculty.setPhone(request.getPhone());
-        faculty.setDepartment(request.getDepartment());
-        faculty.setFacultyCode(request.getFacultyCode());
+        f.setFacultyCode(req.getFacultyCode());
+        f.setName(req.getName());
+        f.setPhone(req.getPhone());
+        f.setDepartment(req.getDepartment());
 
-        userRepository.save(faculty);
-
-        return "Faculty updated successfully";
+        return facultyRepo.save(f);
     }
 
-    public String deleteFaculty(Long id) {
+    // ✅ DELETE
+    public void delete(Long id) {
 
-        User faculty = getFacultyById(id);
+        FacultyDetails f = facultyRepo.findById(id).orElseThrow();
+        facultyRepo.delete(f);
+        userRepo.delete(f.getUser());
+        
+    }
 
-        userRepository.delete(faculty);
-
-        return "Faculty deleted successfully";
+    // ✅ FILTER
+    public List<FacultyDetails> byDept(String dept) {
+        return facultyRepo.findByDepartment(dept);
     }
 }
+
