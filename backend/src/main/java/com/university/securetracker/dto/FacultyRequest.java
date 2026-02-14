@@ -8,7 +8,7 @@ public class FacultyRequest {
     private String facultyCode;
     private String name;
     private String phone;
-    private String department;
+    private Long departmentId;
 
     // ===== getters setters =====
 
@@ -27,6 +27,13 @@ public class FacultyRequest {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+   
 }

@@ -1,13 +1,11 @@
-import { useState, useContext } from "react";
-import api from "../api/axiosConfig";
-import { AuthContext } from "../context/AuthContext";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axiosConfig";
 
 export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -19,32 +17,36 @@ export default function Login() {
         password
       });
 
-      login(res.data);
-      navigate("/dashboard");
+      localStorage.setItem("token", res.data.token);
+      navigate("/admin/dashboard");
 
     } catch (err) {
-      alert("Invalid Credentials");
+      alert("Invalid credentials");
     }
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h2>Secure Academic File System</h2>
+    <div>
+
+      <h2>Login</h2>
 
       <form onSubmit={handleLogin}>
         <input
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
-        /><br/><br/>
+        />
+        <br /><br />
 
         <input
           type="password"
           placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
-        /><br/><br/>
+        />
+        <br /><br />
 
         <button type="submit">Login</button>
       </form>
+
     </div>
   );
 }

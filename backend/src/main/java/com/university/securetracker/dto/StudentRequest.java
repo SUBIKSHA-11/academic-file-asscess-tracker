@@ -7,10 +7,11 @@ public class StudentRequest {
     private String regNo;
     private String name;
     private String phone;
-    private String department;
     private Integer year;
 
-    // ===== getters setters =====
+    private Long departmentId; // ✅ IMPORTANT
+
+    // Getters & Setters
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -27,9 +28,9 @@ public class StudentRequest {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
-
     public Integer getYear() { return year; }
     public void setYear(Integer year) { this.year = year; }
+
+    public Long getDepartmentId() { return departmentId; }
+    public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
 }

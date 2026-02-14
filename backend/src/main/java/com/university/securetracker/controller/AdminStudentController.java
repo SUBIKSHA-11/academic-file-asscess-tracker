@@ -1,23 +1,17 @@
 package com.university.securetracker.controller;
 
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.*;
 
 import com.university.securetracker.dto.StudentRequest;
-import com.university.securetracker.model.StudentDetails;
+import com.university.securetracker.dto.StudentResponse;
 import com.university.securetracker.service.StudentService;
 
 @RestController
 @RequestMapping("/admin/students")
-//@RequiredArgsConstructor
 public class AdminStudentController {
 
     private final StudentService service;
@@ -26,41 +20,66 @@ public class AdminStudentController {
         this.service = service;
     }
 
+    // ==========================
     // CREATE
+    // ==========================
     @PostMapping
-    public StudentDetails create(@RequestBody StudentRequest req){
+    public StudentResponse create(@RequestBody StudentRequest req){
         return service.create(req);
     }
 
-    // READ
+    // ==========================
+    // READ ALL (Sorted)
+    // ==========================
     @GetMapping
-    public List<StudentDetails> all(){
+    public List<StudentResponse> all(){
         return service.getAll();
     }
 
+    // ==========================
     // UPDATE
+    // ==========================
     @PutMapping("/{id}")
-    public StudentDetails update(@PathVariable Long id,
-                                 @RequestBody StudentRequest req){
+    public StudentResponse update(@PathVariable Long id,
+                                  @RequestBody StudentRequest req){
         return service.update(id, req);
     }
 
+    // ==========================
     // DELETE
+    // ==========================
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id){
         service.delete(id);
-        return "Deleted";
+        return "Deleted Successfully";
     }
 
-    // FILTER by dept
-    @GetMapping("/department/{dept}")
-    public List<StudentDetails> byDept(@PathVariable String dept){
-        return service.byDept(dept);
+    // ==========================
+    // FILTER BY DEPARTMENT
+    // ==========================
+    @GetMapping("/department/{deptId}")
+    public List<StudentResponse> byDept(@PathVariable Long deptId){
+        return service.byDept(deptId);
     }
 
-    // FILTER by year
-    @GetMapping("/year/{year}")
-    public List<StudentDetails> byYear(@PathVariable Integer year){
-        return service.byYear(year);
+    // ==========================
+    // YEAR COUNT
+    // ==========================
+    @GetMapping("/department/{deptId}/year-count")
+    public Map<Integer, Long> yearCount(@PathVariable Long deptId){
+        return service.countByYear(deptId);
+    }
+
+    // ==========================
+    // PAGINATION + SEARCH
+    // ==========================
+    @GetMapping("/department/{deptId}/paged")
+    public Page<StudentResponse> getPaged(
+            @PathVariable Long deptId,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return service.getByDeptWithSearch(deptId, search, page, size);
     }
 }
