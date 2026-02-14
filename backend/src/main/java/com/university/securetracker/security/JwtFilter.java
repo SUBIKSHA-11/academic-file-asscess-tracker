@@ -30,38 +30,57 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+protected void doFilterInternal(HttpServletRequest request,
+                                HttpServletResponse response,
+                                FilterChain filterChain)
+        throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+    String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-            String token = authHeader.substring(7);
+        String token = authHeader.substring(7);
 
+        try {
             String email = jwtUtil.extractEmail(token);
 
-            var user = repo.findByEmail(email).orElse(null);
+            if (email != null) {
 
-            if (user != null) {
+                var user = repo.findByEmail(email).orElse(null);
 
-                var authorities = Collections.singletonList(
-                        new SimpleGrantedAuthority("ROLE_" + user.getRole())
-                );
+                if (user != null) {
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                email,
-                                null,
-                                authorities
-                        );
+                    var authorities = Collections.singletonList(
+                            new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase())
+                    );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                   UsernamePasswordAuthenticationToken authToken =
+        new UsernamePasswordAuthenticationToken(
+                email,
+                null,
+                authorities
+        );
+
+authToken.setDetails(
+        new org.springframework.security.web.authentication.WebAuthenticationDetailsSource()
+                .buildDetails(request)
+);
+System.out.println("JWT FILTER HIT");
+System.out.println("Email from token: " + email);
+System.out.println("Role from DB: " + user.getRole());
+
+
+SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                }
             }
-        }
 
-        filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            // token invalid → ignore
+        }
     }
+
+    filterChain.doFilter(request, response);
+}
+
 }
