@@ -3,7 +3,7 @@ package com.university.securetracker.dto;
 
 public class FileUploadRequest {
 
-    private String department;
+    private Long departmentId;
     private Integer semester;
     private String subject;
     private String category;
@@ -14,8 +14,8 @@ public class FileUploadRequest {
 
     // getters setters
 
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
+    public Long getDepartment() { return departmentId; }
+    public void setDepartment(Long departmentId) { this.departmentId = departmentId; }
 
     public Integer getSemester() { return semester; }
     public void setSemester(Integer semester) { this.semester = semester; }

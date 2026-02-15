@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import FacultyPage from "./pages/FacultyPage";
 import StudentPage from "./pages/StudentPage";
+import AcademicPage from "./pages/AcademicPage";
 import AlertsPage from "./pages/AlertsPage";
 import LogsPage from "./pages/LogsPage";
 import Layout from "./components/Layout";
@@ -24,6 +25,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="faculty" element={<FacultyPage />} />
           <Route path="students" element={<StudentPage />} />
+          <Route path="academic" element={<AcademicPage />} />
           <Route path="alerts" element={<AlertsPage />} />
           <Route path="logs" element={<LogsPage />} />
 

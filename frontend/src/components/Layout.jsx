@@ -10,6 +10,7 @@ export default function Layout() {
         <Link to="/admin/dashboard">Dashboard</Link> |{" "}
         <Link to="/admin/faculty">Faculty</Link> |{" "}
         <Link to="/admin/students">Students</Link> |{" "}
+        <Link to="/admin/academic">Files</Link> |{" "}
         <Link to="/admin/alerts">Alerts</Link> |{" "}
         <Link to="/admin/logs">Logs</Link>
       </nav>

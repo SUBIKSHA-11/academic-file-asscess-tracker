@@ -12,8 +12,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.university.securetracker.dto.FileUploadRequest;
-import com.university.securetracker.model.*;
-import com.university.securetracker.repository.*;
+import com.university.securetracker.model.AcademicFile;
+import com.university.securetracker.model.ActivityLog;
+import com.university.securetracker.model.Alert;
+import com.university.securetracker.model.Department;
+import com.university.securetracker.model.FileCategory;
+import com.university.securetracker.model.Sensitivity;
+import com.university.securetracker.model.User;
+import com.university.securetracker.repository.ActivityLogRepository;
+import com.university.securetracker.repository.AlertRepository;
+import com.university.securetracker.repository.DepartmentRepository;
+import com.university.securetracker.repository.FileRepository;
+import com.university.securetracker.repository.UserRepository;
 
 @Service
 public class FileService {
@@ -22,6 +32,7 @@ public class FileService {
     private final UserRepository userRepo;
     private final ActivityLogRepository logRepo;
     private final AlertRepository alertRepo;
+    private final DepartmentRepository deptRepo;
 
     private final String UPLOAD_DIR = "uploads/files/";
 private final List<String> allowedExtensions = List.of(
@@ -55,11 +66,13 @@ private void validateFile(MultipartFile file) {
     public FileService(FileRepository repo,
                        UserRepository userRepo,
                        ActivityLogRepository logRepo,
-                    AlertRepository alertRepo) {
+                    AlertRepository alertRepo,
+                DepartmentRepository deptRepo) {
         this.repo = repo;
         this.userRepo = userRepo;
         this.logRepo = logRepo;
         this.alertRepo = alertRepo;
+        this.deptRepo = deptRepo;
     }
 
     // =========================================================
@@ -132,7 +145,12 @@ if (!user.getRole().equals("ADMIN") &&
         AcademicFile af = new AcademicFile();
         af.setFileName(file.getOriginalFilename());
         af.setFilePath(path);
-        af.setDepartment(req.getDepartment());
+        Department dept = deptRepo.findById(
+        req.getDepartment()
+).orElseThrow(() -> new RuntimeException("Department not found"));
+
+af.setDepartment(dept);
+
         af.setSemester(req.getSemester());
         af.setSubject(req.getSubject());
         af.setSize(file.getSize());
@@ -169,11 +187,11 @@ if (!user.getRole().equals("ADMIN") &&
                 .collect(Collectors.toList());
     }
 
-    public List<AcademicFile> byDept(String dept, String email) {
+    public List<AcademicFile> byDept(Long dept, String email) {
 
         User user = userRepo.findByEmail(email).orElseThrow();
 
-        return repo.findByDepartment(dept)
+        return repo.findByDepartmentId(dept)
                 .stream()
                 .filter(f -> {
                     try {
@@ -186,13 +204,13 @@ if (!user.getRole().equals("ADMIN") &&
                 .collect(Collectors.toList());
     }
 
-    public List<AcademicFile> byDeptSem(String dept,
+    public List<AcademicFile> byDeptSem(Long dept,
                                         Integer sem,
                                         String email) {
 
         User user = userRepo.findByEmail(email).orElseThrow();
 
-        return repo.findByDepartmentAndSemester(dept, sem)
+        return repo.findByDepartmentIdAndSemester(dept, sem)
                 .stream()
                 .filter(f -> {
                     try {
@@ -304,6 +322,23 @@ private void checkSuspiciousDownload(User user) {
 
         alertRepo.save(alert);
     }
+}
+public List<AcademicFile> byCategory(String category, String email) {
+
+    User user = userRepo.findByEmail(email).orElseThrow();
+
+    return repo.findAll()
+            .stream()
+            .filter(f -> f.getCategory().name().equalsIgnoreCase(category))
+            .filter(f -> {
+                try {
+                    checkAccess(user, f);
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
+            })
+            .toList();
 }
 
 

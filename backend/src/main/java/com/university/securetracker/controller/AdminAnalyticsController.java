@@ -1,10 +1,18 @@
 package com.university.securetracker.controller;
 
-import com.university.securetracker.model.AcademicFile;
-import com.university.securetracker.repository.*;
-import org.springframework.web.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.util.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.university.securetracker.model.AcademicFile;
+import com.university.securetracker.model.Department;
+import com.university.securetracker.repository.ActivityLogRepository;
+import com.university.securetracker.repository.FileRepository;
 
 @RestController
 @RequestMapping("/admin/analytics")
@@ -67,9 +75,15 @@ public class AdminAnalyticsController {
         Map<String, Long> stats = new HashMap<>();
 
         for (AcademicFile file : fileRepo.findAll()) {
-            String dept = file.getDepartment();
-            stats.put(dept,
-                    stats.getOrDefault(dept, 0L) + 1);
+           Department dept = file.getDepartment();
+
+String deptName = dept.getName();
+
+stats.put(
+        deptName,
+        stats.getOrDefault(deptName, 0L) + 1
+);
+
         }
 
         return stats;

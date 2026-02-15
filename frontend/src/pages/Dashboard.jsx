@@ -13,39 +13,44 @@ export default function Dashboard() {
   const [categoryStats, setCategoryStats] = useState([]);
   const [deptStats, setDeptStats] = useState([]);
 
-  useEffect(() => {
+ useEffect(() => {
 
-    api.get("/admin/dashboard/stats")
-      .then(res => setStats(res.data));
+  api.get("/admin/dashboard/stats")
+    .then(res => setStats(res.data))
+    .catch(err => console.log("Stats error:", err));
 
-    api.get("/admin/analytics/top-files")
-      .then(res => {
-        const formatted = res.data.map(f => ({
-          name: f.fileName,
-          downloads: f.downloads
-        }));
-        setTopFiles(formatted);
-      });
+  api.get("/admin/analytics/top-files")
+    .then(res => {
+      const formatted = res.data.map(f => ({
+        name: f.fileName,
+        downloads: f.downloads
+      }));
+      setTopFiles(formatted);
+    })
+    .catch(err => console.log("Top files error:", err));
 
-    api.get("/admin/analytics/category-stats")
-      .then(res => {
-        const formatted = Object.entries(res.data).map(([key, value]) => ({
-          name: key,
-          value: value
-        }));
-        setCategoryStats(formatted);
-      });
+  api.get("/admin/analytics/category-stats")
+    .then(res => {
+      const formatted = Object.entries(res.data).map(([key, value]) => ({
+        name: key,
+        value: value
+      }));
+      setCategoryStats(formatted);
+    })
+    .catch(err => console.log("Category error:", err));
 
-    api.get("/admin/analytics/department-stats")
-      .then(res => {
-        const formatted = Object.entries(res.data).map(([key, value]) => ({
-          name: key,
-          files: value
-        }));
-        setDeptStats(formatted);
-      });
+  api.get("/admin/analytics/department-stats")
+    .then(res => {
+      const formatted = Object.entries(res.data).map(([key, value]) => ({
+        name: key,
+        files: value
+      }));
+      setDeptStats(formatted);
+    })
+    .catch(err => console.log("Department error:", err));
 
-  }, []);
+}, []);
+
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 

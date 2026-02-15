@@ -23,8 +23,9 @@ public class AcademicFile {
     private String fileName;
 
     private String filePath;
-
-    private String department;
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
 
     private Integer semester;
 
@@ -58,8 +59,8 @@ public class AcademicFile {
     public String getFilePath() { return filePath; }
     public void setFilePath(String filePath) { this.filePath = filePath; }
 
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
+    public Department getDepartment() { return department; }
+    public void setDepartment(Department department) { this.department = department; }
 
     public Integer getSemester() { return semester; }
     public void setSemester(Integer semester) { this.semester = semester; }
